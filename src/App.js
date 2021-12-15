@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 // import firebase from 'firebase/app';
 import { initializeApp } from 'firebase/app';
 import { GoogleAuthProvider, getAuth, signInWithPopup } from 'firebase/auth';
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, where, query, onSnapshot } from 'firebase/firestore';
 import 'firebase/auth';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -25,56 +25,67 @@ const firestore = getFirestore(app);
 function App() {
   const [user] = useAuthState(auth);
 
+  console.log("User", user);
   return (
     <div className="App">
-      <header className="App-header">
-        Hello World
+      <header className="header">
+        Firebase Chat App
       </header>
-      <SignIn></SignIn>
       <section>
         {user ? <ChatRoom /> : <SignIn />}
       </section>
+      <SignOut />
     </div>
   );
 }
 
 const SignIn = () => {
-  const signInWithGoogle = () => {
+  const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider);
+    const result = await signInWithPopup(auth, provider);
+    console.log(result.user);
   };
 
   return (
-    <button onClick={signInWithGoogle}>
+    <button className="btn" onClick={signInWithGoogle}>
       Sign in with Google
     </button>
   )
 }
 const SignOut = () => {
   return auth.currentUser && (
-    <button onClick={() => auth.signOut()}>Sign Out</button>
+    <button className="btn" onClick={() => auth.signOut()}>Sign Out</button>
   );
 }
 
 const ChatRoom = () => {
+  const [docs, setDocs] = useState(null);
+
   const messagesRef = collection(firestore, 'messages');
-  // const query = getDocs(messagesRef);
-  // const [messages] = useCollectionData(query, { idField: 'id' });
+  // const docs = getDocs(messagesRef);
+  const q = query(messagesRef, where("message", "!=", ""));
+
+  const snapshotListener = onSnapshot(q, (querySnapshot) => {
+    const newData = [];
+    querySnapshot.forEach((d) => (newData.push(d.data())));
+    console.log(newData);
+    setDocs(newData);
+  });
 
   return (
     <>
-      <div>Yo dawg
-        {/* {messages && messages.map(msg => (<ChatMessage key={msg.id} message={msg} />))} */}
+      <div className="chat">Yo dawg
+        {docs && docs.map((msg) => <ChatMessage message={msg.message} key={msg.userid} />)}
       </div>
     </>
   )
 }
 
 const ChatMessage = ({ message }) => {
-  const { text, uid } = message;
+  
 
   return (
-    <p>{text}</p>
+    <p>{message}</p>
   )
 }
 
