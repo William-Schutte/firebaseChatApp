@@ -15,18 +15,62 @@
 }
 
 .btn {
-  width: 350px;
-  height: 80px;
+  width: 300px;
+  height: 60px;
   border-radius: 100px;
   border: none;
   background-color: #6e9ef8;
   font-size: 24px;
+  cursor: pointer;
 }
 
 .chat {
   height: 70vh;
+  position: relative;
   background-color: #364664;
   color: white;
-  max-width: 400px;
-  margin: 0 auto 32px;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto 48px;
+  z-index: 0
+}
+
+.chat-view {
+  height: 100%;
+  z-index: 0
+}
+
+.chat-form {
+  display: flex;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0; 
+}
+
+.chat-input {
+  width: 70%;
+  border: none;
+  padding: 4px 8px;
+  box-sizing: border-box;
+}
+
+.chat-input:focus {
+  outline: none;
+  box-shadow: inset 0px 0px 5px 3px #6e9ef8;
+}
+
+.chat-send {
+  width: 30%;
+  height: 40px;
+  background-color: #6e9ef8;
+  border: none;
+  margin: 0;
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.chat-send:hover {
+  background-color: #4181f7;
+  transition: background-color .3s ease;
 }

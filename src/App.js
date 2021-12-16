@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-// import firebase from 'firebase/app';
-import { initializeApp } from 'firebase/app';
+import { FirebaseError, initializeApp } from 'firebase/app';
 import { GoogleAuthProvider, getAuth, signInWithPopup } from 'firebase/auth';
-import { getFirestore, collection, where, query, onSnapshot } from 'firebase/firestore';
+import { getFirestore, collection, where, query, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import 'firebase/auth';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -34,7 +33,7 @@ function App() {
       <section>
         {user ? <ChatRoom /> : <SignIn />}
       </section>
-      <SignOut />
+      {user && <SignOut />}
     </div>
   );
 }
@@ -60,7 +59,7 @@ const SignOut = () => {
 
 const ChatRoom = () => {
   const [docs, setDocs] = useState(null);
-
+  const [formValue, setFormValue] = useState('');
   const messagesRef = collection(firestore, 'messages');
   // const docs = getDocs(messagesRef);
   const q = query(messagesRef, where("message", "!=", ""));
@@ -68,24 +67,43 @@ const ChatRoom = () => {
   const snapshotListener = onSnapshot(q, (querySnapshot) => {
     const newData = [];
     querySnapshot.forEach((d) => (newData.push(d.data())));
-    console.log(newData);
     setDocs(newData);
   });
 
+  const sendMessage = async (e) => {
+    e.preventDefault();
+
+    const { uid, photoURL } = auth.currentUser;
+
+    const newDocRef = await addDoc(messagesRef, {
+      text: formValue,
+      createdAt: serverTimestamp(),
+      uid,
+      photoURL,
+    });
+
+    setFormValue('');
+  }
   return (
-    <>
-      <div className="chat">Yo dawg
-        {docs && docs.map((msg) => <ChatMessage message={msg.message} key={msg.userid} />)}
+    <div className="chat">
+      <div className="chat-view">
+        {docs && docs.map((msg) => <ChatMessage message={msg} key={msg.userid} />)}
       </div>
-    </>
+      <form className="chat-form" value={formValue} onChange={(e) => setFormValue(e.target.value)}>
+        <input className="chat-input" />
+        <button type="submit" className="chat-send">Send</button>
+      </form>
+    </div>
   )
 }
 
 const ChatMessage = ({ message }) => {
-  
-
+  const { text, userid } = message;
+  const userMessage = userid === auth.currentUser.uid ? 'sentMsg' : 'receivedMsg';
   return (
-    <p>{message}</p>
+    <div className={userMessage}>
+      <p>{text}</p>
+    </div>
   )
 }
 
