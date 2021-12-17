@@ -32,12 +32,11 @@
   width: 100%;
   max-width: 500px;
   margin: 0 auto 48px;
-  z-index: 0
+  padding: 1em;
 }
 
 .chat-view {
   height: 100%;
-  z-index: 0
 }
 
 .chat-form {
@@ -57,7 +56,7 @@
 
 .chat-input:focus {
   outline: none;
-  box-shadow: inset 0px 0px 5px 3px #6e9ef8;
+  border: 1px solid #4181f7;
 }
 
 .chat-send {
@@ -73,4 +72,34 @@
 .chat-send:hover {
   background-color: #4181f7;
   transition: background-color .3s ease;
+}
+
+.message {
+  display: flex;
+  width: 100%;
+  padding: .5em;
+  box-sizing: border-box;
+}
+
+.sentMsg {
+  flex-direction: row-reverse;
+}
+
+.message img {
+  height: 50px;
+  width: 50px;
+  object-fit: cover;
+  border-radius: 100px;
+}
+
+.message p {
+  line-height: 1em;
+  font-size: 1em;
+  margin: auto 1em;
+  padding: 1em;
+  height: 100%;
+  width: auto;
+  display: flex;
+  background-color: #b4ceff;
+  border-radius: 50px;
 }

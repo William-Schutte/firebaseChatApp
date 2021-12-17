@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { FirebaseError, initializeApp } from 'firebase/app';
 import { GoogleAuthProvider, getAuth, signInWithPopup } from 'firebase/auth';
-import { getFirestore, collection, where, query, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, collection, where, query, onSnapshot, addDoc, serverTimestamp, getDocs } from 'firebase/firestore';
 import 'firebase/auth';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -60,10 +60,29 @@ const SignOut = () => {
 const ChatRoom = () => {
   const [docs, setDocs] = useState(null);
   const [formValue, setFormValue] = useState('');
-  const messagesRef = collection(firestore, 'messages');
-  // const docs = getDocs(messagesRef);
-  const q = query(messagesRef, where("message", "!=", ""));
+  const dummy = useRef();
+  const messagesCollection = collection(firestore, 'messages');
+  const q = query(messagesCollection, where("text", "!=", ""));
+  // const intervalListener = setInterval(async() => {
+  //   const querySnapshot = await getDocs(messagesCollection);
+  //   const queryDocs = [];
+  //   querySnapshot.forEach((doc) => {
+  //     queryDocs.push(doc.data());
+  //   });
+  //   queryDocs.sort((a, b) => {
+  //     if (a.createdAt < b.createdAt) {
+  //       return -1;
+  //     } else {
+  //       return 1;
+  //     }
+  //   })
+  //   setDocs(queryDocs);
+  //   console.log(queryDocs);
+  // }, 5000);
 
+  // useEffect(() => {
+  //   return () => clearInterval(intervalListener);
+  // }, [intervalListener]);
   const snapshotListener = onSnapshot(q, (querySnapshot) => {
     const newData = [];
     querySnapshot.forEach((d) => (newData.push(d.data())));
@@ -75,7 +94,7 @@ const ChatRoom = () => {
 
     const { uid, photoURL } = auth.currentUser;
 
-    const newDocRef = await addDoc(messagesRef, {
+    const newDocRef = await addDoc(messagesCollection, {
       text: formValue,
       createdAt: serverTimestamp(),
       uid,
@@ -84,13 +103,17 @@ const ChatRoom = () => {
 
     setFormValue('');
   }
+
+  dummy.current?.scrollIntoView({ behavior: 'smooth' });
+
   return (
     <div className="chat">
       <div className="chat-view">
-        {docs && docs.map((msg) => <ChatMessage message={msg} key={msg.userid} />)}
+        {docs && docs.map((msg) => <ChatMessage message={msg} key={msg.time} />)}
+        <div ref={dummy}></div>
       </div>
-      <form className="chat-form" value={formValue} onChange={(e) => setFormValue(e.target.value)}>
-        <input className="chat-input" />
+      <form className="chat-form" value={formValue} onSubmit={sendMessage}>
+        <input className="chat-input" value={formValue} onChange={(e) => setFormValue(e.target.value)} />
         <button type="submit" className="chat-send">Send</button>
       </form>
     </div>
@@ -98,10 +121,11 @@ const ChatRoom = () => {
 }
 
 const ChatMessage = ({ message }) => {
-  const { text, userid } = message;
-  const userMessage = userid === auth.currentUser.uid ? 'sentMsg' : 'receivedMsg';
+  const { text, uid, photoURL } = message;
+  const userMessage = uid === auth.currentUser.uid ? 'message sentMsg' : 'message receivedMsg';
   return (
     <div className={userMessage}>
+      <img src={photoURL} alt="User icon" />
       <p>{text}</p>
     </div>
   )
